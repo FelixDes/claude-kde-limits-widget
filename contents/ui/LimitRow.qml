@@ -17,11 +17,23 @@ ColumnLayout {
     readonly property string resetIn: windowData ? (windowData.reset_in || "") : ""
     readonly property string resetTs: windowData ? (windowData.reset_ts || "") : ""
 
+    // Reactive clock: bindings that need the current time depend on `now`
+    // instead of Date.now() (which QML can't track), so a Timer ticking this
+    // property forces the countdown below to re-evaluate live.
+    property double now: new Date().getTime()
+
+    Timer {
+        interval: 30000
+        running: true
+        repeat: true
+        onTriggered: root.now = new Date().getTime()
+    }
+
     readonly property string resetLabel: {
         if (!resetTs) return resetIn
         var ts = parseInt(resetTs)
         if (isNaN(ts) || ts <= 0) return resetIn
-        var diff = ts * 1000 - Date.now()
+        var diff = ts * 1000 - now
         if (diff <= 0) return "now"
         var totalMins = Math.round(diff / 60000)
         var days = Math.floor(totalMins / 1440)
