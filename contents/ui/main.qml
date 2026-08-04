@@ -19,6 +19,7 @@ PlasmoidItem {
     property string errorMsg: ""
     property bool loading: false
     property string lastUpdated: ""
+    property double nowMs: Date.now()
 
     readonly property var h5: limitData ? limitData.h5 : null
     readonly property var d7: limitData ? limitData.d7 : null
@@ -53,7 +54,8 @@ PlasmoidItem {
                 } else {
                     root.limitData = parsed
                     root.errorMsg = ""
-                    var now = new Date()
+                    root.nowMs = Date.now()
+                    var now = new Date(root.nowMs)
                     root.lastUpdated = now.getHours() + ":" + String(now.getMinutes()).padStart(2, "0")
                 }
             } catch(e) {
@@ -78,6 +80,14 @@ PlasmoidItem {
         onTriggered: root.fetchLimits()
     }
 
+    // Keep reset countdowns moving without making extra API requests.
+    Timer {
+        interval: 30 * 1000
+        running: true
+        repeat: true
+        onTriggered: root.nowMs = Date.now()
+    }
+
     // Delayed first fetch: give the network / session a moment after login
     Timer {
         interval: 6000
@@ -93,7 +103,9 @@ PlasmoidItem {
         // Tell the panel how wide/tall we want to be. Plasma's panel layout
         // reads the Layout.* attached properties; implicitWidth alone is
         // ignored, which is why the applet gets squeezed to icon width.
-        readonly property int desiredWidth: 150
+        readonly property int minimumDesiredWidth: 150
+        readonly property int desiredWidth: Math.max(
+            minimumDesiredWidth, Math.ceil(compactCol.width + 8))
 
         implicitWidth: desiredWidth
         implicitHeight: compactCol.implicitHeight + 4
@@ -107,16 +119,21 @@ PlasmoidItem {
         Column {
             id: compactCol
             anchors.centerIn: parent
+            width: Math.max(compactH5.width, compactD7.width)
             spacing: 2
 
             CompactBar {
+                id: compactH5
                 label: "5h"
                 windowData: root.h5
+                nowMs: root.nowMs
                 visible: root.hasData
             }
             CompactBar {
+                id: compactD7
                 label: "7d"
                 windowData: root.d7
+                nowMs: root.nowMs
                 visible: root.hasData
             }
 
@@ -208,6 +225,7 @@ PlasmoidItem {
                     Layout.fillWidth: true
                     label: "5-hour window"
                     windowData: root.h5
+                    nowMs: root.nowMs
                 }
 
                 Item { Layout.fillHeight: true }
@@ -216,6 +234,7 @@ PlasmoidItem {
                     Layout.fillWidth: true
                     label: "7-day window"
                     windowData: root.d7
+                    nowMs: root.nowMs
                 }
 
                 Item { Layout.fillHeight: true }

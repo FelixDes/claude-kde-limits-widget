@@ -16,23 +16,8 @@ ColumnLayout {
     readonly property string status: windowData ? (windowData.status || "") : ""
     readonly property string resetIn: windowData ? (windowData.reset_in || "") : ""
     readonly property string resetTs: windowData ? (windowData.reset_ts || "") : ""
-
-    readonly property string resetLabel: {
-        if (!resetTs) return resetIn
-        var ts = parseInt(resetTs)
-        if (isNaN(ts) || ts <= 0) return resetIn
-        var diff = ts * 1000 - Date.now()
-        if (diff <= 0) return "now"
-        var totalMins = Math.round(diff / 60000)
-        var days = Math.floor(totalMins / 1440)
-        var hrs  = Math.floor((totalMins % 1440) / 60)
-        var mins = totalMins % 60
-        var parts = []
-        if (days > 0) parts.push(days + "d")
-        if (hrs  > 0) parts.push(hrs + " hr")
-        if (mins > 0) parts.push(mins + " min")
-        return parts.length ? parts.join(" ") : "< 1 min"
-    }
+    property double nowMs: Date.now()
+    readonly property string resetLabel: Utils.formatReset(resetTs, resetIn, nowMs, false)
 
     readonly property bool limited: Utils.isLimited(status)
     readonly property color barColor: Utils.barColor(status, utilization, Kirigami.Theme.negativeTextColor)
@@ -87,6 +72,6 @@ ColumnLayout {
         text: root.resetLabel ? "Resets " + root.resetLabel : ""
         font.pixelSize: 10
         opacity: 0.7
-        visible: root.resetIn !== ""
+        visible: root.resetLabel !== ""
     }
 }

@@ -69,3 +69,5 @@ if $RESTART; then
 else
     echo "Tip: run with --restart (or run 'plasmashell --replace &') to reload the widget"
 fi
+
+systemctl --user restart plasma-plasmashell.service

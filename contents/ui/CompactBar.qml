@@ -13,11 +13,15 @@ Row {
 
     readonly property real utilization: windowData ? windowData.utilization : 0
     readonly property string resetIn: windowData ? (windowData.reset_in || "") : ""
+    readonly property string resetTs: windowData ? (windowData.reset_ts || "") : ""
+    property double nowMs: Date.now()
+    readonly property string resetLabel: Utils.formatReset(resetTs, resetIn, nowMs, true)
     readonly property color barColor: Utils.barColor(
         windowData ? windowData.status : "", utilization,
         Kirigami.Theme.negativeTextColor)
 
     spacing: 2
+    width: 16 + 60 + 3 + 25 + resetGroup.implicitWidth + spacing * 4
 
     PlasmaComponents.Label {
         text: root.label
@@ -46,26 +50,35 @@ Row {
 
     PlasmaComponents.Label {
         text: Math.round(root.utilization * 100) + "%"
-        width: 25
         font.pixelSize: 10
+        width: 25
         anchors.verticalCenter: parent.verticalCenter
     }
 
-    Row {
+    Item {
+        id: resetGroup
+        implicitWidth: resetIcon.width + 2 + resetText.implicitWidth
+        implicitHeight: Math.max(resetIcon.height, resetText.implicitHeight)
+        width: implicitWidth
+        height: implicitHeight
         anchors.verticalCenter: parent.verticalCenter
-        spacing: 2
         opacity: 0.8
 
         Kirigami.Icon {
+            id: resetIcon
             source: "view-refresh"
             width: 12
             height: 12
+            anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
         }
 
         PlasmaComponents.Label {
-            text: root.resetIn
+            id: resetText
+            text: root.resetLabel
             font.pixelSize: 10
+            anchors.left: resetIcon.right
+            anchors.leftMargin: 2
             anchors.verticalCenter: parent.verticalCenter
         }
     }
